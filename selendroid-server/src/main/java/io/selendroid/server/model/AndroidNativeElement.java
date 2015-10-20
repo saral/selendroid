@@ -14,43 +14,40 @@
 package io.selendroid.server.model;
 
 import android.app.Activity;
+import android.graphics.Rect;
+import android.os.SystemClock;
+import android.view.MotionEvent;
+import android.view.View;
 import android.view.ViewParent;
+import android.webkit.JsResult;
+import android.webkit.WebChromeClient;
+import android.webkit.WebView;
+import android.widget.CompoundButton;
+import android.widget.EditText;
+import android.widget.SeekBar;
+import android.widget.TextView;
 import io.selendroid.server.ServerInstrumentation;
 import io.selendroid.server.android.AndroidWait;
 import io.selendroid.server.android.KeySender;
 import io.selendroid.server.android.ViewHierarchyAnalyzer;
 import io.selendroid.server.android.internal.Dimension;
 import io.selendroid.server.android.internal.Point;
-import io.selendroid.server.common.exceptions.ElementNotVisibleException;
-import io.selendroid.server.common.exceptions.NoSuchElementAttributeException;
+import io.selendroid.server.common.exceptions.*;
 import io.selendroid.server.common.exceptions.NoSuchElementException;
-import io.selendroid.server.common.exceptions.SelendroidException;
-import io.selendroid.server.common.exceptions.TimeoutException;
 import io.selendroid.server.model.interactions.AndroidCoordinates;
 import io.selendroid.server.model.interactions.Coordinates;
 import io.selendroid.server.model.internal.AbstractNativeElementContext;
 import io.selendroid.server.util.Function;
 import io.selendroid.server.util.Preconditions;
 import io.selendroid.server.util.SelendroidLogger;
+import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.lang.UnsupportedOperationException;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import android.graphics.Rect;
-import android.os.SystemClock;
-import android.view.MotionEvent;
-import android.view.View;
-import android.webkit.JsResult;
-import android.webkit.WebChromeClient;
-import android.webkit.WebView;
-import android.widget.CompoundButton;
-import android.widget.EditText;
-import android.widget.TextView;
 
 public class AndroidNativeElement implements AndroidElement {
   // TODO revisit
@@ -227,7 +224,24 @@ public class AndroidNativeElement implements AndroidElement {
     for (CharSequence keys : keysToSend) {
       sb.append(keys);
     }
-    send(sb);
+
+    final View view = getView();
+    if (view instanceof SeekBar) {
+      Integer progressValue = tryParseInteger(sb.toString());
+      if (progressValue != null) {
+        ((SeekBar) view).setProgress(progressValue);
+      }
+    } else {
+      send(sb);
+    }
+  }
+
+  private Integer tryParseInteger(String string) {
+    try {
+      return Integer.valueOf(string);
+    } catch (NumberFormatException nfe) {
+      return null;
+    }
   }
 
   private void requestFocus() {
