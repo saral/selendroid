@@ -13,16 +13,15 @@
  */
 package io.selendroid.server.model.internal;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
 import io.selendroid.server.util.SelendroidLogger;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 public class JsonXmlUtil {
   public static Document buildXmlDocument(JSONObject tree) {
@@ -80,7 +79,7 @@ public class JsonXmlUtil {
     String error = from.optString("error");
     if(error != null){
       node.setAttribute("error", error);
-    };
+    }
 
     JSONObject rect = from.optJSONObject("rect");
     if (rect != null) {

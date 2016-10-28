@@ -45,7 +45,6 @@ import org.json.JSONObject;
 
 import java.lang.UnsupportedOperationException;
 import java.lang.ref.WeakReference;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 
@@ -372,7 +371,10 @@ public class AndroidNativeElement implements AndroidElement {
     rect.put("size", size);
 
     object.put("ref", ke.getIdOfElement(this));
-    object.put("type", getView().getClass().getSimpleName());
+
+    String type = getView().getClass().getSimpleName();
+    object.put("type", "".equals(type)? "Anonymous" : type);
+
     String value = "";
     if (getView() instanceof TextView) {
       TextView textView = (TextView) getView();
