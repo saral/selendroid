@@ -13,19 +13,14 @@
  */
 package io.selendroid.standalone.server.handler;
 
-import io.selendroid.standalone.server.BaseSelendroidStandaloneHandler;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.openqa.selenium.internal.Base64Encoder;
+import io.selendroid.server.common.*;
+import io.selendroid.server.common.http.*;
+import io.selendroid.standalone.exceptions.*;
+import io.selendroid.standalone.server.*;
+import org.apache.commons.codec.binary.*;
+import org.json.*;
 
-import io.selendroid.server.common.Response;
-import io.selendroid.server.common.SelendroidResponse;
-import io.selendroid.server.common.StatusCode;
-import io.selendroid.server.common.http.HttpRequest;
-import io.selendroid.standalone.exceptions.AndroidDeviceException;
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.logging.*;
 
 public class CaptureScreenshot extends BaseSelendroidStandaloneHandler {
   private static final Logger log = Logger.getLogger(CaptureScreenshot.class.getName());
@@ -43,7 +38,7 @@ public class CaptureScreenshot extends BaseSelendroidStandaloneHandler {
       log.log(Level.SEVERE, "Cannot take screenshot", e);
       return new SelendroidResponse(getSessionId(request), StatusCode.UNKNOWN_ERROR, e);
     }
-    String base64Png = new Base64Encoder().encode(rawPng);
+    String base64Png = Base64.encodeBase64String(rawPng);
 
     return new SelendroidResponse(getSessionId(request), base64Png);
   }

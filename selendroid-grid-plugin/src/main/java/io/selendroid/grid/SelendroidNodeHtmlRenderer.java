@@ -13,11 +13,10 @@
  */
 package io.selendroid.grid;
 
-import org.openqa.grid.common.RegistrationRequest;
-import org.openqa.grid.internal.TestSlot;
-import org.openqa.grid.internal.utils.HtmlRenderer;
-import org.openqa.grid.web.utils.BrowserNameUtils;
-import org.openqa.selenium.remote.DesiredCapabilities;
+import org.openqa.grid.internal.*;
+import org.openqa.grid.internal.utils.*;
+import org.openqa.grid.web.utils.*;
+import org.openqa.selenium.remote.*;
 
 /**
  * Selendroid node renderer used in the Selenium Grid hub.
@@ -53,7 +52,7 @@ public class SelendroidNodeHtmlRenderer implements HtmlRenderer {
 
       String icon = null;
 
-      if (BROWSER_NAME.equals(slot.getCapabilities().get(RegistrationRequest.BROWSER))) {
+      if (BROWSER_NAME.equals(slot.getCapabilities().get(CapabilityType.BROWSER_NAME))) {
         icon = "selendroid";
       } else {
         icon =

@@ -13,39 +13,16 @@
  */
 package io.selendroid.client;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Maps;
+import com.google.common.base.*;
+import com.google.common.collect.*;
+import io.selendroid.client.adb.*;
+import io.selendroid.server.common.utils.*;
+import org.openqa.selenium.*;
+import org.openqa.selenium.interactions.*;
+import org.openqa.selenium.remote.*;
 
-import io.selendroid.client.adb.AdbConnection;
-import io.selendroid.server.common.utils.CallLogEntry;
-
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.openqa.selenium.Capabilities;
-import org.openqa.selenium.ContextAware;
-import org.openqa.selenium.OutputType;
-import org.openqa.selenium.Rotatable;
-import org.openqa.selenium.ScreenOrientation;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebDriverException;
-import org.openqa.selenium.interactions.HasTouchScreen;
-import org.openqa.selenium.interactions.TouchScreen;
-import org.openqa.selenium.remote.CommandExecutor;
-import org.openqa.selenium.remote.ExecuteMethod;
-import org.openqa.selenium.remote.RemoteExecuteMethod;
-import org.openqa.selenium.remote.RemoteTouchScreen;
-import org.openqa.selenium.remote.RemoteWebDriver;
-import org.openqa.selenium.remote.Response;
-
-import com.google.common.collect.ImmutableMap;
+import java.net.*;
+import java.util.*;
 
 /**
  * {@inheritDoc}
@@ -286,4 +263,13 @@ public class SelendroidDriver extends RemoteWebDriver
     execute("-selendroid-forceGcExplicitly");
   }
 
+  @Override
+  public void rotate(DeviceRotation deviceRotation) {
+
+  }
+
+  @Override
+  public DeviceRotation rotation() {
+    return null;
+  }
 }
