@@ -13,11 +13,7 @@
  */
 package io.selendroid.standalone.server.model;
 
-import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
-import com.google.common.base.Strings;
+import com.google.common.base.*;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -216,7 +212,7 @@ public class DeviceStore {
     Iterable<AndroidDevice> candidateDevices = Strings.isNullOrEmpty(platformVersion) ?
         Iterables.concat(androidDevices.values()) : androidDevices.get(DeviceTargetPlatform.fromPlatformVersion(platformVersion));
 
-    candidateDevices = Objects.firstNonNull(candidateDevices, Collections.EMPTY_LIST);
+    candidateDevices = MoreObjects.firstNonNull(candidateDevices, Collections.EMPTY_LIST);
 
     FluentIterable<AndroidDevice> allMatchingDevices = FluentIterable.from(candidateDevices)
         .filter(deviceNotInUse())
@@ -323,6 +319,10 @@ public class DeviceStore {
       public boolean apply(AndroidDevice candidate) {
         return !devicesInUse.contains(candidate);
       }
+      @Override
+      public boolean test(AndroidDevice candidate) {
+        return apply(candidate);
+      }
     };
   }
 
@@ -342,6 +342,10 @@ public class DeviceStore {
 
         return Iterables.all(booleanExpressions, Predicates.equalTo(true));
       }
+      @Override
+      public boolean test(AndroidDevice candidate) {
+        return apply(candidate);
+      }
     };
   }
 
@@ -350,6 +354,10 @@ public class DeviceStore {
       @Override
       public boolean apply(AndroidDevice candidate) {
         return !(candidate instanceof DefaultAndroidEmulator && !((DefaultAndroidEmulator) candidate).isEmulatorStarted());
+      }
+      @Override
+      public boolean test(AndroidDevice candidate) {
+        return apply(candidate);
       }
     };
   }

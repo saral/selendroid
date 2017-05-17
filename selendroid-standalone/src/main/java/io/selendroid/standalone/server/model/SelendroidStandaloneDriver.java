@@ -342,7 +342,7 @@ public class SelendroidStandaloneDriver implements ServerDetails {
         try {
           Thread.sleep(2000);
           String crashMessage = device.getCrashLog();
-          if (!crashMessage.isEmpty()) {
+          if (crashMessage.length() > 0) {
             throw new AppCrashedException(crashMessage);
           }
         } catch (InterruptedException e) {
@@ -499,7 +499,7 @@ public class SelendroidStandaloneDriver implements ServerDetails {
   }
 
   public boolean isValidSession(String sessionId) {
-    return sessionId != null && !sessionId.isEmpty() && sessions.containsKey(sessionId);
+    return sessionId != null && sessionId.length() > 0 && sessions.containsKey(sessionId);
   }
 
   public void stopSession(String sessionId) throws AndroidDeviceException {
