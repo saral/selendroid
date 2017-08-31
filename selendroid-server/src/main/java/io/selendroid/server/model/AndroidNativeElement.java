@@ -13,39 +13,26 @@
  */
 package io.selendroid.server.model;
 
-import android.app.Activity;
-import android.graphics.Rect;
-import android.os.SystemClock;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.ViewParent;
-import android.webkit.JsResult;
-import android.webkit.WebChromeClient;
-import android.webkit.WebView;
-import android.widget.CompoundButton;
-import android.widget.EditText;
-import android.widget.SeekBar;
-import android.widget.TextView;
-import io.selendroid.server.ServerInstrumentation;
-import io.selendroid.server.android.AndroidWait;
-import io.selendroid.server.android.KeySender;
-import io.selendroid.server.android.ViewHierarchyAnalyzer;
-import io.selendroid.server.android.internal.Dimension;
+import android.app.*;
+import android.graphics.*;
+import android.os.*;
+import android.view.*;
+import android.webkit.*;
+import android.widget.*;
+import io.selendroid.server.*;
+import io.selendroid.server.android.*;
+import io.selendroid.server.android.internal.*;
 import io.selendroid.server.android.internal.Point;
 import io.selendroid.server.common.exceptions.*;
 import io.selendroid.server.common.exceptions.NoSuchElementException;
-import io.selendroid.server.model.interactions.AndroidCoordinates;
-import io.selendroid.server.model.interactions.Coordinates;
-import io.selendroid.server.model.internal.AbstractNativeElementContext;
-import io.selendroid.server.util.Function;
-import io.selendroid.server.util.Preconditions;
-import io.selendroid.server.util.SelendroidLogger;
-import org.json.JSONException;
-import org.json.JSONObject;
+import io.selendroid.server.model.interactions.*;
+import io.selendroid.server.model.internal.*;
+import io.selendroid.server.util.*;
+import org.json.*;
 
 import java.lang.UnsupportedOperationException;
-import java.lang.ref.WeakReference;
-import java.lang.reflect.Method;
+import java.lang.ref.*;
+import java.lang.reflect.*;
 import java.util.*;
 
 public class AndroidNativeElement implements AndroidElement {
@@ -256,6 +243,24 @@ public class AndroidNativeElement implements AndroidElement {
 
   @Override
   public String getText() {
+    if ("MeterChart".equals(getView().getClass().getSimpleName())) {
+      try {
+        String data = getMeterChartData();
+        System.out.println("HASAN: " + data);
+        return data;
+      } catch (JSONException e) {
+        throw new NoSuchElementAttributeException("Error constructing MeterChart Text");
+      }
+    } else if ("DiyBarView".equals(getView().getClass().getSimpleName())) {
+      try {
+        String data = getDiyBarViewData();
+        System.out.println("HASAN: " + data);
+        return data;
+      } catch (Exception e) {
+        throw new NoSuchElementAttributeException("Error constructing DiyBarChart Text");
+      }
+    }
+
     if (getView() instanceof TextView) {
       return ((TextView) getView()).getText().toString();
     }
@@ -553,6 +558,128 @@ public class AndroidNativeElement implements AndroidElement {
     return new Dimension(getView().getWidth(), getView().getHeight());
   }
 
+  public String getClassInfo(Class<?> clazz) {
+    Method[] ms = clazz.getDeclaredMethods();
+    String mStr = "\nHASAN KLASS: " + clazz.getName();
+    for (int i=0; i < ms.length; i++) {
+      mStr += "\n";
+      mStr += "\nNAME     : " + ms[i].getName();
+      mStr += "\nPARAMS   : " + getParams(ms[i].getParameterTypes());
+      mStr += "\nRETURNS  : " + getClassInfo2(ms[i].getReturnType());
+    }
+    return mStr;
+  }
+
+  public String getClassInfo2(Class<?> clazz) {
+    Method[] ms = clazz.getDeclaredMethods();
+    String mStr = "    " + clazz.getName();
+    for (int i=0; i < ms.length; i++) {
+      mStr += "\n";
+      mStr += "\n    NAME     : " + ms[i].getName();
+      mStr += "\n    PARAMS   : " + getParams(ms[i].getParameterTypes());
+      mStr += "\n    RETURNS  : " + ms[i].getReturnType().getName();
+    }
+    return mStr;
+  }
+
+  public String getParams(Class<?>[] parameterTypes) {
+    String s = "";
+    for(int i=0; i < parameterTypes.length; i++) {
+      s += ", " + parameterTypes[i].getName();
+    }
+    return s;
+  }
+
+  public Object invoke(String methodName, final Object onObject, final Object... args) {
+    if (onObject == null) {
+      return null;
+    }
+    final Object[] result = new Object[1];
+    final Exception[] exception = new Exception[1];
+    final Method m = getDeclaredMethod(methodName, onObject);
+    instrumentation.runOnMainSync(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          result[0] = m.invoke(onObject, args);
+        } catch(Exception e) {
+          exception[0] = e;
+        }
+      }
+    });
+    if (exception.length == 1 && exception[0] != null) {
+      throw new SelendroidException(exception[0]);
+    }
+    return result[0];
+  }
+
+  private String getMeterChartData() throws JSONException {
+    Object meterChartModel  = invoke("getMeterChartModel", getView());
+    List meterBars          = (List) invoke("getMeterBars", meterChartModel);
+
+    JSONArray bars = new JSONArray();
+    if (meterBars != null) {
+      for (Object meterBar : meterBars) {
+        JSONObject bar = new JSONObject();
+        bar.put("value", invoke("getChunkValue", meterBar));
+
+        List barChunks = (List) invoke("getBarChunks", meterBar);
+
+        JSONArray chunks = new JSONArray();
+        if (barChunks != null) {
+          for (Object barChunk : barChunks) {
+            JSONObject chunk = new JSONObject();
+
+            chunk.put("value",      invoke("getValue", barChunk));
+            chunk.put("maxValue",   invoke("getMaxValue", barChunk));
+            chunk.put("baseValue",  invoke("getBaseValue", barChunk));
+            chunk.put("optName",    invoke("getOptionalChunkName", barChunk));
+
+            chunk.put("upText ",    invoke("getText", invoke("getUpText", barChunk)));
+            chunk.put("middleText", invoke("getText", invoke("getMiddleText", barChunk)));
+            chunk.put("downText",   invoke("getText", invoke("getDownText", barChunk)));
+            chunks.put(chunk);
+          }
+          bar.put("chunks", chunks);
+          bars.put(bar);
+        }
+      }
+    }
+
+    JSONObject json = new JSONObject();
+    json.put("bars", bars);
+    return json.toString();
+  }
+
+  private String getDiyBarViewData() throws JSONException, NoSuchFieldException, IllegalAccessException {
+    Object diyBarView = getView();
+    JSONObject json = new JSONObject();
+    json.put("currentIndex", invoke("getCurrentPosition", diyBarView));
+
+    Field textField = diyBarView.getClass().getDeclaredField("currentText");
+    textField.setAccessible(true);
+    Object val = textField.get(diyBarView);
+    json.put("currentText", val + "");
+
+    System.out.println("PHASAN 1");
+    Field textValuesField = diyBarView.getClass().getDeclaredField("textValues");
+    System.out.println("PHASAN 2");
+    textValuesField.setAccessible(true);
+    System.out.println("HASAN 3");
+    String[] textValues = (String[]) textValuesField.get(diyBarView);
+
+    System.out.println("HASAN 4");
+    JSONArray jsonTextValues = new JSONArray();
+    for(Object textValue : textValues) {
+      System.out.println("HASAN 5");
+      jsonTextValues.put(textValue);
+    }
+    System.out.println("HASAN 6");
+    json.put("textValues", jsonTextValues);
+
+    return json.toString();
+  }
+
   @Override
   public String getAttribute(String attribute) {
     if (attribute.equalsIgnoreCase("nativeid")) {
@@ -588,6 +715,18 @@ public class AndroidNativeElement implements AndroidElement {
 
   private String capitalizeFirstLetter(String name) {
     return name.substring(0, 1).toUpperCase() + name.substring(1);
+  }
+
+  private Method getDeclaredMethod(String name, Object obj) {
+    Preconditions.checkNotNull(name);
+
+    Method method = null;
+    try {
+      method = obj.getClass().getMethod(name);
+    } catch (NoSuchMethodException e) {
+      // can happen
+    }
+    return method;
   }
 
   private Method getDeclaredMethod(String name) {
